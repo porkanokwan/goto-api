@@ -20,7 +20,7 @@ module.exports = async (req, res, next) => {
       attributes: { exclude: ["password"] },
     });
 
-    req.user = user;
+    req.member = user;
   } catch (err) {
     next(err);
   }
