@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
           isEmail: true,
         },
       },
-      phone: {
+      phoneNumber: {
         type: DataTypes.STRING,
         allowNull: true,
         unique: true,
@@ -30,8 +30,8 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           notEmpty: true,
           min(value) {
-            if (value.length < 8) {
-              throw new Error("Length must be greater than 8");
+            if (value.length <= 8) {
+              throw new Error("Must be at least 8 characters long");
             }
           },
         },
@@ -92,7 +92,7 @@ module.exports = (sequelize, DataTypes) => {
 
     User.belongsToMany(model.Menu, {
       through: model.UserMenu,
-      foreignKey: "place_id",
+      foreignKey: "user_id",
     });
   };
 

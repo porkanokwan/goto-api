@@ -1,3 +1,3 @@
-module.exports.notFound = (req, res, next) => {
+module.exports = (req, res, next) => {
   res.status(404).json({ message: "Resource not found on this server" });
 };
