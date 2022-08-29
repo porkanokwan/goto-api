@@ -1,4 +1,4 @@
-const cloudinary = require("cloudinary").v2;
+const cloudinary = require("../utils/cloudinary");
 const { Category } = require("../models");
 const createError = require("../utils/createError");
 
@@ -9,42 +9,11 @@ exports.addCategory = async (
   nightLifeFile
 ) => {
   try {
-    const attractionLink = await cloudinary.uploader.upload(
-      attractionFile,
-      (error, result) => {
-        if (error) {
-          return console.log(error);
-        }
-        return result.secure_url;
-      }
-    );
-    const restaurantLink = await cloudinary.uploader.upload(
-      restaurantFile,
-      (error, result) => {
-        if (error) {
-          return console.log(error);
-        }
-        return result.secure_url;
-      }
-    );
-    const streetFoodLink = await cloudinary.uploader.upload(
-      streetFoodFile,
-      (error, result) => {
-        if (error) {
-          return console.log(error);
-        }
-        return result.secure_url;
-      }
-    );
-    const nightLifeLink = await cloudinary.uploader.upload(
-      nightLifeFile,
-      (error, result) => {
-        if (error) {
-          return console.log(error);
-        }
-        return result.secure_url;
-      }
-    );
+    const attractionLink = await cloudinary.upload(attractionFile);
+    const restaurantLink = await cloudinary.upload(restaurantFile);
+    const streetFoodLink = await cloudinary.upload(streetFoodFile);
+    const nightLifeLink = await cloudinary.upload(nightLifeFile);
+    console.log(attractionLink);
 
     const categories = await Category.bulkCreate([
       { name: "Attractions", coverPic: attractionLink.secure_url },

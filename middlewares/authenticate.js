@@ -21,6 +21,7 @@ module.exports = async (req, res, next) => {
     });
 
     req.member = user;
+    next();
   } catch (err) {
     next(err);
   }
