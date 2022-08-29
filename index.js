@@ -12,6 +12,7 @@ const authRoute = require("./routes/authRoute");
 const userRoute = require("./routes/userRoute");
 const homeRoute = require("./routes/homeRoute");
 const placeRoute = require("./routes/placeRoute");
+const profileRoute = require("./routes/profileRoute");
 
 const { addProvince } = require("./service/provinceService");
 const { addCategory } = require("./service/categoryService");
@@ -38,10 +39,10 @@ if (process.env.NODE_ENV === "development") {
 
 app.use("/user", userRoute);
 app.use("/auth", authRoute);
+app.use("/profile", authenticateMiddleware, profileRoute);
 app.use("/place", authenticateMiddleware, placeRoute);
 // app.use("/", authenticateMiddleware, homeRoute);
 // app.use("/category");
-// app.use("/profile");
 // app.use("/menu");
 // app.use("/review");
 // app.use("/blog");
