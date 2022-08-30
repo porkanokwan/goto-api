@@ -13,6 +13,8 @@ const userRoute = require("./routes/userRoute");
 const homeRoute = require("./routes/homeRoute");
 const placeRoute = require("./routes/placeRoute");
 const profileRoute = require("./routes/profileRoute");
+const blogRoute = require("./routes/blogRoute");
+const placeBlogRoute = require("./routes/blogRoute");
 
 const { addProvince } = require("./service/provinceService");
 const { addCategory } = require("./service/categoryService");
@@ -41,11 +43,10 @@ app.use("/user", userRoute);
 app.use("/auth", authRoute);
 app.use("/profile", authenticateMiddleware, profileRoute);
 app.use("/place", authenticateMiddleware, placeRoute);
+app.use("/blog", authenticateMiddleware, blogRoute);
 // app.use("/", authenticateMiddleware, homeRoute);
-// app.use("/category");
 // app.use("/menu");
 // app.use("/review");
-// app.use("/blog");
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
