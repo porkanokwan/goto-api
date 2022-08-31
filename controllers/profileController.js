@@ -1,4 +1,4 @@
-const { User } = require("../models");
+const { User, Blog, PlaceInBlog, Province, Category } = require("../models");
 const createError = require("../utils/createError");
 const validator = require("validator");
 const cloudinary = require("../utils/cloudinary");
@@ -145,6 +145,31 @@ exports.changePassword = async (req, res, next) => {
 
 exports.getBlogUser = async (req, res, next) => {
   try {
+    const { userId } = req.params;
+    const allBlog = await Blog.findAll({
+      where: { user_id: userId },
+      attributes: { exclude: ["province_id", "category_id", "user_id"] },
+      include: [
+        {
+          model: Province,
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        },
+        {
+          model: Category,
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        },
+        {
+          model: User,
+          attributes: ["id", "name", "profile_pic"],
+        },
+        {
+          model: PlaceInBlog,
+          attributes: { exclude: ["blog_id"] },
+        },
+      ],
+    });
+
+    res.status(200).json({ allBlog });
   } catch (err) {
     next(err);
   }
