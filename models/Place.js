@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       star: {
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.DECIMAL(2, 1).UNSIGNED,
         allowNull: false,
         defaultValue: 0,
       },
