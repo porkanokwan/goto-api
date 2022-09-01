@@ -15,6 +15,7 @@ exports.getAllBlog = async (req, res, next) => {
   try {
     const allBlog = await Blog.findAll({
       attributes: { exclude: ["province_id", "category_id", "user_id"] },
+      order: [["updatedAt", "DESC"]],
       include: [
         {
           model: Province,
@@ -90,7 +91,7 @@ exports.createBlog = async (req, res, next) => {
     if (!categoryId) {
       createError("category is require", 400);
     }
-    if (!req.files.cover_pic && !req.files.picture) {
+    if (!req.files.cover_pic || !req.files.picture) {
       createError("cover picture and picture is require", 400);
     }
     let coverPic;
@@ -151,7 +152,7 @@ exports.createBlog = async (req, res, next) => {
     next(err);
   } finally {
     fs.unlinkSync(req.files.cover_pic[0].path);
-    for (let idx = 0; idx < req.files.picture.length; idx++) {
+    for (let idx = 0; idx < req.files.picture?.length; idx++) {
       fs.unlinkSync(req.files.picture[idx].path);
     }
   }
@@ -180,7 +181,7 @@ exports.updateBlog = async (req, res, next) => {
     if (!categoryId) {
       createError("category is require", 400);
     }
-    if (!req.files.cover_pic && !req.files.picture) {
+    if (!req.files.cover_pic || !req.files.picture) {
       createError("cover picture and picture is require", 400);
     }
     let coverPic;
@@ -203,24 +204,47 @@ exports.updateBlog = async (req, res, next) => {
       },
       { where: { id: blogId } }
     );
-
     const objPlaceBlog = JSON.parse(JSON.stringify(existPlaceBlog, null, 2));
-    if (req.files.picture) {
-      for (let idx = 0; idx < req.files.picture.length; idx++) {
-        if (objPlaceBlog[idx].picture) {
+    const lengthIdx =
+      objPlaceBlog.length <= req.files.picture.length
+        ? req.files.picture.length
+        : objPlaceBlog.length;
+
+    for (let idx = 0; idx < lengthIdx; idx++) {
+      if (req.files?.picture[idx]) {
+        if (objPlaceBlog[idx]?.picture) {
           const splited = existPlaceBlog[idx].picture.split("/");
           const publicId = splited[splited.length - 1].split(".")[0];
           await cloudinary.destroy(publicId);
         }
+
         const result = await cloudinary.upload(req.files.picture[idx].path);
-        await PlaceInBlog.update(
-          {
+        if (objPlaceBlog[idx]?.id) {
+          if (place[idx]) {
+            await PlaceInBlog.update(
+              {
+                name: place[idx].name,
+                content: place[idx].content,
+                picture: result.secure_url,
+              },
+              { where: { id: objPlaceBlog[idx].id } }
+            );
+          }
+        } else {
+          await PlaceInBlog.create({
             name: place[idx].name,
             content: place[idx].content,
             picture: result.secure_url,
-          },
-          { where: { id: existPlaceBlog[idx].id } }
-        );
+            blog_id: blogId,
+          });
+        }
+      } else {
+        if (objPlaceBlog[idx]?.picture) {
+          const splited = objPlaceBlog[idx].picture.split("/");
+          const publicId = splited[splited.length - 1].split(".")[0];
+          await cloudinary.destroy(publicId);
+        }
+        await PlaceInBlog.destroy({ where: { id: objPlaceBlog[idx].id } });
       }
     }
 
@@ -252,7 +276,7 @@ exports.updateBlog = async (req, res, next) => {
     next(err);
   } finally {
     fs.unlinkSync(req.files.cover_pic[0].path);
-    for (let idx = 0; idx < req.files.picture.length; idx++) {
+    for (let idx = 0; idx < req.files.picture?.length; idx++) {
       fs.unlinkSync(req.files.picture[idx].path);
     }
   }
@@ -262,7 +286,6 @@ exports.deleteBlog = async (req, res, next) => {
   try {
     const { blogId } = req.params;
     const blog = await Blog.findOne({ where: { id: blogId } });
-    const placeBlog = await PlaceInBlog.findAll({ where: { blog_id: blogId } });
     if (!blog) {
       createError("This Blog is not found on server", 400);
     }
