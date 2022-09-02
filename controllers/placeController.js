@@ -5,6 +5,7 @@ const {
   Category,
   Review,
   ReviewPic,
+  User,
 } = require("../models");
 const cloudinary = require("../utils/cloudinary");
 const createError = require("../utils/createError");
@@ -120,7 +121,7 @@ exports.getPlaceById = async (req, res, next) => {
     const { placeId } = req.params;
     const place = await Place.findOne({
       where: { id: placeId },
-      attributes: { exclude: ["userId"] },
+      attributes: { exclude: ["user_id", "province_id", "category_id"] },
       include: [
         {
           model: Province,
@@ -132,15 +133,22 @@ exports.getPlaceById = async (req, res, next) => {
         },
         {
           model: PlacePic,
-          attributes: { exclude: ["placeId", "createdAt", "updatedAt"] },
+          attributes: {
+            exclude: ["place_id", "user_id", "createdAt", "updatedAt"],
+          },
         },
         {
           model: Review,
-          attributes: { exclude: ["placeId"] },
-          include: {
-            model: ReviewPic,
-            attributes: { exclude: ["createdAt", "updatedAt"] },
-          },
+          attributes: { exclude: ["place_id", "user_id"] },
+          separate: true,
+          order: [["updatedAt", "DESC"]],
+          include: [
+            {
+              model: ReviewPic,
+              attributes: { exclude: ["review_id", "createdAt", "updatedAt"] },
+            },
+            { model: User, attributes: ["id", "name", "profilePic"] },
+          ],
         },
       ],
     });
@@ -260,7 +268,7 @@ exports.updatePlace = async (req, res, next) => {
 
     const placeUpdate = await Place.findOne({
       where: { id: placeId },
-      attributes: { exclude: ["userId"] },
+      attributes: { exclude: ["user_id"] },
       include: [
         {
           model: Province,
@@ -272,15 +280,7 @@ exports.updatePlace = async (req, res, next) => {
         },
         {
           model: PlacePic,
-          attributes: { exclude: ["placeId", "createdAt", "updatedAt"] },
-        },
-        {
-          model: Review,
-          attributes: { exclude: ["placeId"] },
-          include: {
-            model: ReviewPic,
-            attributes: { exclude: ["createdAt", "updatedAt"] },
-          },
+          attributes: { exclude: ["place_id", "createdAt", "updatedAt"] },
         },
       ],
     });

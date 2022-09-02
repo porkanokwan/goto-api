@@ -1,30 +1,23 @@
 const express = require("express");
 const {
   home,
-  searchByCategoryIdAndProvinceId,
-  searchByCategoryId,
-  searchByProvinceId,
-  viewAllPlaceByCategory,
-  viewAllPlaceByCategoryAndProvince,
-  getPlaceById,
-  getMenuByPlaceId,
-  getAllBlog,
-  getBlogById,
-} = require("../controllers/userController");
+  searchByCategoryAndProvince,
+  searchByCategory,
+  searchByProvince,
+} = require("../controllers/homeController");
+const { getAllBlog, getBlogById } = require("../controllers/blogController");
+const { getPlaceById } = require("../controllers/placeController");
+const { getMenuByPlaceId } = require("../controllers/menuController");
 const router = express.Router();
 
 router.get("", home);
-router.get(
-  "/category/:categoryId/province/:provinceId",
-  searchByCategoryIdAndProvinceId
-);
-router.get("/category/:categoryId", searchByCategoryId);
-router.get("/province/:provinceId", searchByProvinceId);
-router.get("/allplace/:categoryId", viewAllPlaceByCategory);
-router.get(
-  "/allplace/:categoryId/:provinceId",
-  viewAllPlaceByCategoryAndProvince
-);
+router.get("/category/province", searchByCategoryAndProvince);
+router.get("/category", searchByCategory);
+router.get("/province", searchByProvince);
+
+router.get("/allplace", searchByCategory);
+router.get("/allplace/province", searchByCategoryAndProvince);
+
 router.get("/place/:placeId", getPlaceById);
 router.get("/menu/:placeId", getMenuByPlaceId);
 router.get("/blog", getAllBlog);
