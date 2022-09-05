@@ -110,7 +110,7 @@ exports.forgotPassword = async (req, res, next) => {
       subject: "กำหนดรหัสผ่านของคุณใหม่",
       html: `<h2>สวัสดี ${user.name}</h2> 
           <p>เราได้รับคำขอเพื่อตั้งค่ารหัสผ่านใหม่ สำหรับสมาชิกที่ใช้อีเมลล์ ${email}</p> 
-          <p>กรุณาคลิกที่นี่ ${process.env.URL_RESET}/auth/reset-password?token=${token}</p>
+          <p>กรุณาคลิกที่นี่ ${process.env.URL_RESET}/reset-password?token=${token}</p>
           `,
     };
     sendMail(data);
@@ -123,12 +123,15 @@ exports.forgotPassword = async (req, res, next) => {
 
 exports.resetPassword = async (req, res, next) => {
   try {
-    const { newPassword, confirmPasssword } = req.body;
+    const { newPassword, confirmPassword } = req.body;
     const { token } = req.query;
     if (!newPassword) {
       createError("password is required", 400);
     }
-    if (newPassword !== confirmPasssword) {
+    if (!confirmPassword) {
+      createError("confirm passsword is required", 400);
+    }
+    if (newPassword !== confirmPassword) {
       createError("password is not match", 400);
     }
 
