@@ -10,6 +10,7 @@ const authenticateMiddleware = require("./middlewares/authenticate");
 
 const authRoute = require("./routes/authRoute");
 const userRoute = require("./routes/userRoute");
+const selectRoute = require("./routes/selectRoute");
 const homeRoute = require("./routes/homeRoute");
 const placeRoute = require("./routes/placeRoute");
 const profileRoute = require("./routes/profileRoute");
@@ -40,9 +41,9 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-app.use("/user", userRoute);
+app.use("/", homeRoute);
+app.use("/select", selectRoute);
 app.use("/auth", authRoute);
-app.use("/", authenticateMiddleware, homeRoute);
 app.use("/profile", authenticateMiddleware, profileRoute);
 app.use("/place", authenticateMiddleware, placeRoute);
 app.use("/blog", authenticateMiddleware, blogRoute);
