@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 0,
       },
+      titleShow: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
     },
     {
       underscored: true,

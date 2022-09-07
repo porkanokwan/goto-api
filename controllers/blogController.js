@@ -81,7 +81,8 @@ exports.getBlogById = async (req, res, next) => {
 
 exports.createBlog = async (req, res, next) => {
   try {
-    const { title, provinceId, categoryId, content, place } = req.body;
+    const { title, provinceId, categoryId, content, place, titleShow } =
+      req.body;
     if (!title) {
       createError("title is require", 400);
     }
@@ -106,6 +107,7 @@ exports.createBlog = async (req, res, next) => {
       category_id: categoryId,
       content,
       coverPic: coverPic,
+      titleShow,
       user_id: req.member.id,
     });
 
@@ -161,7 +163,8 @@ exports.createBlog = async (req, res, next) => {
 exports.updateBlog = async (req, res, next) => {
   try {
     const { blogId } = req.params;
-    const { title, provinceId, categoryId, content, place } = req.body;
+    const { title, provinceId, categoryId, content, place, titleShow } =
+      req.body;
     const existBlog = await Blog.findOne({ where: { id: blogId } });
     const existPlaceBlog = await PlaceInBlog.findAll({
       where: { blog_id: blogId },
@@ -201,6 +204,7 @@ exports.updateBlog = async (req, res, next) => {
         categoryId,
         content,
         coverPic,
+        titleShow,
       },
       { where: { id: blogId } }
     );
