@@ -74,6 +74,9 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const { emailorPhone, password } = req.body;
+    if (!emailorPhone) {
+      createError("email or phone is require", 400);
+    }
     const user = await User.findOne({
       where: {
         [Op.or]: [{ email: emailorPhone }, { phoneNumber: emailorPhone }],
