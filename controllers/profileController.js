@@ -44,6 +44,7 @@ exports.updateProfile = async (req, res, next) => {
       where: { id: req.member.id },
       attributes: { exclude: ["password"] },
     });
+
     if (!user) {
       createError("This account is not found on server", 400);
     }
@@ -74,7 +75,7 @@ exports.updateProfile = async (req, res, next) => {
       profilePic = result.secure_url;
     }
 
-    const updateUser = await User.update(
+    await User.update(
       {
         name,
         email: isEmail !== "email" ? email : null,
@@ -84,11 +85,15 @@ exports.updateProfile = async (req, res, next) => {
       },
       { where: { id: req.member.id } }
     );
+
+    const updateUser = await User.findOne({ where: { id: user.id } });
     res.status(200).json({ user: updateUser });
   } catch (err) {
     next(err);
   } finally {
-    fs.unlinkSync(req.file.path);
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
   }
 };
 
