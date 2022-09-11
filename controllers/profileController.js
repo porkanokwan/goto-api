@@ -1,4 +1,11 @@
-const { User, Blog, PlaceInBlog, Province, Category } = require("../models");
+const {
+  User,
+  Blog,
+  PlaceInBlog,
+  Province,
+  Category,
+  Like,
+} = require("../models");
 const createError = require("../utils/createError");
 const validator = require("validator");
 const cloudinary = require("../utils/cloudinary");
@@ -154,6 +161,7 @@ exports.getBlogUser = async (req, res, next) => {
     const allBlog = await Blog.findAll({
       where: { user_id: userId },
       attributes: { exclude: ["province_id", "category_id", "user_id"] },
+      order: [["updatedAt", "DESC"]],
       include: [
         {
           model: Province,
@@ -170,6 +178,9 @@ exports.getBlogUser = async (req, res, next) => {
         {
           model: PlaceInBlog,
           attributes: { exclude: ["blog_id"] },
+        },
+        {
+          model: Like,
         },
       ],
     });

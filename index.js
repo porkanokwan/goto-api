@@ -9,7 +9,6 @@ const notFoundMiddleware = require("./middlewares/notFound");
 const authenticateMiddleware = require("./middlewares/authenticate");
 
 const authRoute = require("./routes/authRoute");
-const userRoute = require("./routes/userRoute");
 const selectRoute = require("./routes/selectRoute");
 const homeRoute = require("./routes/homeRoute");
 const placeRoute = require("./routes/placeRoute");

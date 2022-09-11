@@ -33,6 +33,9 @@ exports.getAllBlog = async (req, res, next) => {
           model: PlaceInBlog,
           attributes: { exclude: ["blog_id"] },
         },
+        {
+          model: Like,
+        },
       ],
     });
 
@@ -66,6 +69,9 @@ exports.getBlogById = async (req, res, next) => {
         {
           model: PlaceInBlog,
           attributes: { exclude: ["blog_id"] },
+        },
+        {
+          model: Like,
         },
       ],
     });
@@ -111,7 +117,9 @@ exports.createBlog = async (req, res, next) => {
       user_id: req.member.id,
     });
 
-    for (let idx = 0; idx < place.length; idx++) {
+    const places = JSON.parse(place);
+
+    for (let idx = 0; idx < places.length; idx++) {
       let picture;
       if (req.files.picture) {
         const result = await cloudinary.upload(req.files.picture[idx].path);
@@ -119,8 +127,8 @@ exports.createBlog = async (req, res, next) => {
       }
 
       await PlaceInBlog.create({
-        name: place[idx].name,
-        content: place[idx].content,
+        name: places[idx].name,
+        content: places[idx].content,
         picture,
         blog_id: blog.id,
       });
@@ -163,8 +171,16 @@ exports.createBlog = async (req, res, next) => {
 exports.updateBlog = async (req, res, next) => {
   try {
     const { blogId } = req.params;
-    const { title, provinceId, categoryId, content, place, titleShow } =
-      req.body;
+    const {
+      title,
+      provinceId,
+      categoryId,
+      content,
+      cover_pic,
+      picture,
+      place,
+      titleShow,
+    } = req.body;
     const existBlog = await Blog.findOne({ where: { id: blogId } });
     const existPlaceBlog = await PlaceInBlog.findAll({
       where: { blog_id: blogId },
@@ -184,8 +200,11 @@ exports.updateBlog = async (req, res, next) => {
     if (!categoryId) {
       createError("category is require", 400);
     }
-    if (!req.files.cover_pic || !req.files.picture) {
-      createError("cover picture and picture is require", 400);
+    if (!cover_pic && !req.files.cover_pic) {
+      createError("cover picture is require", 400);
+    }
+    if (!picture?.length && !req.files.picture) {
+      createError("picture is require", 400);
     }
     let coverPic;
     if (req.files.cover_pic) {
@@ -197,58 +216,118 @@ exports.updateBlog = async (req, res, next) => {
       const result = await cloudinary.upload(req.files.cover_pic[0].path);
       coverPic = result.secure_url;
     }
-    await Blog.update(
-      {
-        title,
-        provinceId,
-        categoryId,
-        content,
-        coverPic,
-        titleShow,
-      },
-      { where: { id: blogId } }
-    );
+    // await Blog.update(
+    //   {
+    //     title,
+    //     provinceId,
+    //     categoryId,
+    //     content,
+    //     coverPic: coverPic || cover_pic,
+    //     titleShow,
+    //   },
+    //   { where: { id: blogId } }
+    // );
+
     const objPlaceBlog = JSON.parse(JSON.stringify(existPlaceBlog, null, 2));
+    const objPlace = JSON.parse(place, null, 2);
     const lengthIdx =
-      objPlaceBlog.length <= req.files.picture.length
-        ? req.files.picture.length
+      objPlaceBlog.length <= objPlace.length
+        ? objPlace.length
         : objPlaceBlog.length;
-
+    let i = 0;
+    console.log(picture);
     for (let idx = 0; idx < lengthIdx; idx++) {
-      if (req.files?.picture[idx]) {
-        if (objPlaceBlog[idx]?.picture) {
-          const splited = existPlaceBlog[idx].picture.split("/");
-          const publicId = splited[splited.length - 1].split(".")[0];
-          await cloudinary.destroy(publicId);
-        }
+      const pic =
+        typeof picture === "string"
+          ? picture
+          : typeof picture === "undefined"
+          ? null
+          : picture[idx];
 
-        const result = await cloudinary.upload(req.files.picture[idx].path);
-        if (objPlaceBlog[idx]?.id) {
-          if (place[idx]) {
+      if (req.files?.picture) {
+        console.log("in");
+        if (objPlaceBlog[idx]?.picture === pic && pic !== undefined) {
+          if (
+            !(
+              objPlaceBlog[idx]?.name === objPlace[idx].name &&
+              objPlaceBlog[idx]?.content === objPlace[idx].content
+            )
+          ) {
             await PlaceInBlog.update(
               {
-                name: place[idx].name,
-                content: place[idx].content,
-                picture: result.secure_url,
+                name: objPlace[idx].name,
+                content: objPlace[idx].content,
               },
               { where: { id: objPlaceBlog[idx].id } }
             );
           }
         } else {
-          await PlaceInBlog.create({
-            name: place[idx].name,
-            content: place[idx].content,
-            picture: result.secure_url,
-            blog_id: blogId,
-          });
+          if (objPlaceBlog[idx]?.picture) {
+            const splited = existPlaceBlog[idx].picture.split("/");
+            const publicId = splited[splited.length - 1].split(".")[0];
+            await cloudinary.destroy(publicId);
+          }
+          if (typeof objPlace[idx].picture === "object") {
+            const result = await cloudinary.upload(req.files.picture[i].path);
+            i += 1;
+            if (objPlace[idx]) {
+              if (objPlaceBlog[idx]?.id) {
+                await PlaceInBlog.update(
+                  {
+                    name: objPlace[idx].name,
+                    content: objPlace[idx].content,
+                    picture: result.secure_url,
+                  },
+                  { where: { id: objPlaceBlog[idx].id } }
+                );
+              } else {
+                await PlaceInBlog.create({
+                  name: objPlace[idx].name,
+                  content: objPlace[idx].content,
+                  picture: result.secure_url,
+                  blog_id: blogId,
+                });
+              }
+            } else {
+              await PlaceInBlog.destroy({
+                where: { id: objPlaceBlog[idx].id },
+              });
+            }
+          }
         }
-      } else {
-        if (objPlaceBlog[idx]?.picture) {
-          const splited = objPlaceBlog[idx].picture.split("/");
-          const publicId = splited[splited.length - 1].split(".")[0];
-          await cloudinary.destroy(publicId);
+      } else if (picture) {
+        console.log(objPlaceBlog[idx]?.picture === pic);
+        if (objPlaceBlog[idx]?.picture === pic) {
+          await PlaceInBlog.update(
+            {
+              name: objPlace[idx].name,
+              content: objPlace[idx].content,
+            },
+            { where: { id: objPlaceBlog[idx].id } }
+          );
+        } else {
+          console.log(objPlace);
+          if (objPlaceBlog[idx]?.picture) {
+            const splited = objPlaceBlog[idx].picture.split("/");
+            const publicId = splited[splited.length - 1].split(".")[0];
+            await cloudinary.destroy(publicId);
+
+            if (objPlace[idx]) {
+              await PlaceInBlog.update(
+                {
+                  name: objPlace[idx].name,
+                  content: objPlace[idx].content,
+                  picture: picture[idx],
+                },
+                { where: { id: objPlaceBlog[idx].id } }
+              );
+            } else {
+              await PlaceInBlog.destroy({
+                where: { id: objPlaceBlog[idx].id },
+              });
+            }
+          }
         }
-        await PlaceInBlog.destroy({ where: { id: objPlaceBlog[idx].id } });
       }
     }
 
@@ -279,9 +358,13 @@ exports.updateBlog = async (req, res, next) => {
   } catch (err) {
     next(err);
   } finally {
-    fs.unlinkSync(req.files.cover_pic[0].path);
-    for (let idx = 0; idx < req.files.picture?.length; idx++) {
-      fs.unlinkSync(req.files.picture[idx].path);
+    if (req.files.cover_pic) {
+      fs.unlinkSync(req.files.cover_pic[0].path);
+    }
+    if (req.files.picture) {
+      for (let idx = 0; idx < req.files.picture?.length; idx++) {
+        fs.unlinkSync(req.files.picture[idx].path);
+      }
     }
   }
 };
