@@ -1,4 +1,4 @@
-const { Place, Category, Province, User } = require("../models");
+const { Place, Category, Province, User, PlacePic } = require("../models");
 const createError = require("../utils/createError");
 
 exports.home = async (req, res, next) => {
@@ -19,6 +19,12 @@ exports.home = async (req, res, next) => {
           attributes: { exclude: ["createdAt", "updatedAt"] },
         },
         { model: User, attributes: ["id", "name", "profilePic"] },
+        {
+          model: PlacePic,
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "blog_id", "user_id"],
+          },
+        },
       ],
     });
     const obj = JSON.parse(JSON.stringify(place, null, 2));
@@ -56,6 +62,12 @@ exports.searchByCategoryAndProvince = async (req, res, next) => {
           attributes: { exclude: ["createdAt", "updatedAt"] },
         },
         { model: User, attributes: ["id", "name", "profilePic"] },
+        {
+          model: PlacePic,
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "blog_id", "user_id"],
+          },
+        },
       ],
     });
 
@@ -89,6 +101,12 @@ exports.searchByCategory = async (req, res, next) => {
           attributes: { exclude: ["createdAt", "updatedAt"] },
         },
         { model: User, attributes: ["id", "name", "profilePic"] },
+        {
+          model: PlacePic,
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "blog_id", "user_id"],
+          },
+        },
       ],
     });
 
@@ -122,6 +140,12 @@ exports.searchByProvince = async (req, res, next) => {
           attributes: { exclude: ["createdAt", "updatedAt"] },
         },
         { model: User, attributes: ["id", "name", "profilePic"] },
+        {
+          model: PlacePic,
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "blog_id", "user_id"],
+          },
+        },
       ],
     });
 

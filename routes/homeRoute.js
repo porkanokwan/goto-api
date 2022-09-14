@@ -11,7 +11,7 @@ router.get("/", home);
 router.get("/category/province", searchByCategoryAndProvince);
 router.get("/category", searchByCategory);
 router.get("/province", searchByProvince);
-router.get("/allplace", searchByCategory);
-router.get("/allplace/province", searchByCategoryAndProvince);
+// router.get("/allplace", searchByCategory);
+// router.get("/allplace/province", searchByCategoryAndProvince);
 
 module.exports = router;
