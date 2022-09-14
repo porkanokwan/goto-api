@@ -134,36 +134,17 @@ exports.createBlog = async (req, res, next) => {
       });
     }
 
-    const blogWithPic = await Blog.findOne({
-      where: { id: blog.id },
-      attributes: { exclude: ["province_id", "category_id", "user_id"] },
-      include: [
-        {
-          model: Province,
-          attributes: { exclude: ["createdAt", "updatedAt"] },
-        },
-        {
-          model: Category,
-          attributes: { exclude: ["createdAt", "updatedAt"] },
-        },
-        {
-          model: User,
-          attributes: ["id", "name", "profile_pic"],
-        },
-        {
-          model: PlaceInBlog,
-          attributes: { exclude: ["blog_id"] },
-        },
-      ],
-    });
-
-    res.status(201).json({ blog: blogWithPic });
+    res.status(201).json({ message: "success" });
   } catch (err) {
     next(err);
   } finally {
-    fs.unlinkSync(req.files.cover_pic[0].path);
-    for (let idx = 0; idx < req.files.picture?.length; idx++) {
-      fs.unlinkSync(req.files.picture[idx].path);
+    if (req.files.cover_pic) {
+      fs.unlinkSync(req.files.cover_pic[0].path);
+    }
+    if (req.files.picture) {
+      for (let idx = 0; idx < req.files.picture?.length; idx++) {
+        fs.unlinkSync(req.files.picture[idx].path);
+      }
     }
   }
 };
@@ -216,17 +197,17 @@ exports.updateBlog = async (req, res, next) => {
       const result = await cloudinary.upload(req.files.cover_pic[0].path);
       coverPic = result.secure_url;
     }
-    // await Blog.update(
-    //   {
-    //     title,
-    //     provinceId,
-    //     categoryId,
-    //     content,
-    //     coverPic: coverPic || cover_pic,
-    //     titleShow,
-    //   },
-    //   { where: { id: blogId } }
-    // );
+    await Blog.update(
+      {
+        title,
+        provinceId,
+        categoryId,
+        content,
+        coverPic: coverPic || cover_pic,
+        titleShow,
+      },
+      { where: { id: blogId } }
+    );
 
     const objPlaceBlog = JSON.parse(JSON.stringify(existPlaceBlog, null, 2));
     const objPlace = JSON.parse(place, null, 2);
@@ -235,7 +216,6 @@ exports.updateBlog = async (req, res, next) => {
         ? objPlace.length
         : objPlaceBlog.length;
     let i = 0;
-    console.log(picture);
     for (let idx = 0; idx < lengthIdx; idx++) {
       const pic =
         typeof picture === "string"
@@ -245,7 +225,6 @@ exports.updateBlog = async (req, res, next) => {
           : picture[idx];
 
       if (req.files?.picture) {
-        console.log("in");
         if (objPlaceBlog[idx]?.picture === pic && pic !== undefined) {
           if (
             !(
@@ -296,7 +275,6 @@ exports.updateBlog = async (req, res, next) => {
           }
         }
       } else if (picture) {
-        console.log(objPlaceBlog[idx]?.picture === pic);
         if (objPlaceBlog[idx]?.picture === pic) {
           await PlaceInBlog.update(
             {
@@ -306,7 +284,6 @@ exports.updateBlog = async (req, res, next) => {
             { where: { id: objPlaceBlog[idx].id } }
           );
         } else {
-          console.log(objPlace);
           if (objPlaceBlog[idx]?.picture) {
             const splited = objPlaceBlog[idx].picture.split("/");
             const publicId = splited[splited.length - 1].split(".")[0];
@@ -331,30 +308,7 @@ exports.updateBlog = async (req, res, next) => {
       }
     }
 
-    const blog = await Blog.findOne({
-      where: { id: blogId },
-      attributes: { exclude: ["province_id", "category_id", "user_id"] },
-      include: [
-        {
-          model: Province,
-          attributes: { exclude: ["createdAt", "updatedAt"] },
-        },
-        {
-          model: Category,
-          attributes: { exclude: ["createdAt", "updatedAt"] },
-        },
-        {
-          model: User,
-          attributes: ["name", "profile_pic"],
-        },
-        {
-          model: PlaceInBlog,
-          attributes: { exclude: ["blog_id"] },
-        },
-      ],
-    });
-
-    res.status(200).json({ blog });
+    res.status(200).json({ message: "update success" });
   } catch (err) {
     next(err);
   } finally {
