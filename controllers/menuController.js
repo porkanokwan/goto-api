@@ -47,19 +47,21 @@ exports.createMenu = async (req, res, next) => {
       where: { id: menu.id },
       include: { model: User, attributes: ["id", "name"] },
     });
-
+    console.log(newMenu);
     res.status(201).json({ newMenu });
   } catch (err) {
     next(err);
   } finally {
-    fs.unlinkSync(req.file.path);
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
   }
 };
 
 exports.updateMenu = async (req, res, next) => {
   try {
     const { menuId, placeId } = req.params;
-    const { title } = req.body;
+    const { title, menu_pic } = req.body;
     const place = await Place.findOne({ where: { id: placeId } });
     const menu = await Menu.findOne({
       where: { id: menuId },
@@ -69,7 +71,7 @@ exports.updateMenu = async (req, res, next) => {
       where: { menu_id: menuId, place_id: placeId },
     });
     const user = await User.findOne({ where: { id: req.member.id } });
-
+    console.log(title);
     if (!place) {
       createError("This place is not found on server", 400);
     }
@@ -82,7 +84,7 @@ exports.updateMenu = async (req, res, next) => {
     if (menu.Users[0].id !== req.member.id) {
       createError("you have no permission", 403);
     }
-    if (!(title && req.file)) {
+    if (!(title && (menu_pic || req.file))) {
       createError("title and picture is require", 400);
     }
 
@@ -107,7 +109,9 @@ exports.updateMenu = async (req, res, next) => {
   } catch (err) {
     next(err);
   } finally {
-    fs.unlinkSync(req.file.path);
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
   }
 };
 
