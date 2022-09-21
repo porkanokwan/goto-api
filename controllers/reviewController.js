@@ -118,35 +118,52 @@ exports.updateReview = async (req, res, next) => {
         typeof review_pic === "string"
           ? review_pic
           : typeof review_pic === "undefined"
-          ? null
+          ? undefined
           : review_pic[idx];
-
+      console.log("pic", pic);
+      console.log("fies", req.files.review_pic);
       if (req.files?.review_pic) {
-        const result = await cloudinary.upload(req.files.review_pic[i].path);
-        if (reviewPic[idx]?.reviewPic !== pic && pic !== undefined) {
-          if (reviewPic[idx]?.reviewPic) {
-            console.log("in");
-            const splited = reviewPic[idx].reviewPic.split("/");
-            const publicId = splited[splited.length - 1].split(".")[0];
-            await cloudinary.destroy(publicId);
-          }
-
-          i += 1;
-          if (reviewPic[idx]?.id) {
-            await ReviewPic.update(
-              {
-                reviewPic: result.secure_url,
-                review_id: reviewId,
-              },
-              { where: { id: reviewPic[idx].id } }
+        if (
+          reviewPic[idx]?.reviewPic !== pic &&
+          reviewPic[idx]?.reviewPic !== undefined
+        ) {
+          if (req.files.review_pic[i]) {
+            const result = await cloudinary.upload(
+              req.files.review_pic[i].path
             );
+            if (objReviewPic[idx]?.reviewPic) {
+              const splited = reviewPic[idx].reviewPic.split("/");
+              const publicId = splited[splited.length - 1].split(".")[0];
+              await cloudinary.destroy(publicId);
+
+              if (objReviewPic[idx]?.id) {
+                await ReviewPic.update(
+                  {
+                    reviewPic: result.secure_url,
+                    review_id: reviewId,
+                  },
+                  { where: { id: reviewPic[idx].id } }
+                );
+              } else {
+                await ReviewPic.create({
+                  reviewPic: result.secure_url,
+                  review_id: reviewId,
+                });
+              }
+              i += 1;
+            }
           }
         } else {
           if (!reviewPic[idx]?.id) {
+            const result = await cloudinary.upload(
+              req.files.review_pic[i].path
+            );
             await ReviewPic.create({
               reviewPic: result.secure_url,
               review_id: reviewId,
             });
+
+            i += 1;
           }
         }
       } else if (review_pic) {
@@ -155,7 +172,16 @@ exports.updateReview = async (req, res, next) => {
           const publicId = splited[splited.length - 1].split(".")[0];
           await cloudinary.destroy(publicId);
 
-          await ReviewPic.destroy({ where: { id: reviewPic[idx].id } });
+          if (pic === undefined || pic === review_pic) {
+            await ReviewPic.destroy({ where: { id: reviewPic[idx].id } });
+          } else {
+            await ReviewPic.update(
+              {
+                reviewPic: pic,
+              },
+              { where: { id: reviewPic[idx].id } }
+            );
+          }
         }
       }
     }

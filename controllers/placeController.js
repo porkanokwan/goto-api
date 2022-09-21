@@ -80,14 +80,14 @@ exports.createPlace = async (req, res, next) => {
     }
 
     let results = [];
-    if (req.files.picture) {
+    if (req.files?.picture) {
       for (let i = 0; i < req.files.picture.length; i++) {
         const result = await cloudinary.upload(req.files.picture[i].path);
         results.push(result.secure_url);
       }
     }
 
-    for (let i = 0; i < req.files.picture.length; i++) {
+    for (let i = 0; i < req.files.picture?.length; i++) {
       await PlacePic.create({
         picture: results[i],
         user_id: req.member.id,
@@ -98,17 +98,23 @@ exports.createPlace = async (req, res, next) => {
     const placeWithPic = await Place.findOne({
       where: { id: place.id },
       attributes: { exclude: ["userId"] },
-      include: {
-        model: PlacePic,
-        attributes: { exclude: ["userId", "placeId"] },
-      },
+      include: [
+        {
+          model: PlacePic,
+          attributes: { exclude: ["userId", "placeId"] },
+        },
+        {
+          model: Category,
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        },
+      ],
     });
 
     res.status(201).json({ place: placeWithPic });
   } catch (err) {
     next(err);
   } finally {
-    if (req.files) {
+    if (req.files?.picture) {
       for (let i = 0; i < req.files.picture.length; i++) {
         fs.unlinkSync(req.files.picture[i].path);
       }
@@ -184,6 +190,7 @@ exports.updatePlace = async (req, res, next) => {
       phoneNumber,
       website,
       other,
+      picture,
     } = req.body;
     const place = await Place.findOne({ where: { id: placeId } });
     const placePic = await PlacePic.findAll({ where: { place_id: placeId } });
@@ -205,41 +212,97 @@ exports.updatePlace = async (req, res, next) => {
     if (!address) {
       createError("address is require", 400);
     }
-    if (Object.keys(req.files).length === 0) {
+    if (Object.keys(req.files).length === 0 && !picture) {
       createError("pictures is require", 400);
     }
-    if (req.files.picture.length > 5) {
+    if (req.files.picture?.length > 5) {
       createError("You can upload only 5 photos", 400);
     }
-    const lengthIdx =
-      req.files.picture.length >= placePic.length
+    const objPlacePic = JSON.parse(JSON.stringify(placePic, null, 2));
+    const picLength =
+      picture && req.files.picture
+        ? typeof picture === "string"
+          ? 1 + req.files.picture.length
+          : typeof picture === "object"
+          ? picture.length + req.files.picture.length
+          : req.files.picture.length
+        : typeof picture === "undefined"
         ? req.files.picture.length
-        : placePic.length;
+        : typeof picture === "string"
+        ? 1
+        : picture.length;
+
+    const lengthIdx =
+      objPlacePic.length <= picLength ? picLength : objPlacePic.length;
+
+    let i = 0;
     for (let idx = 0; idx < lengthIdx; idx++) {
-      if (req.files?.picture[idx]) {
-        const result = await cloudinary.upload(req.files.picture[idx].path);
-        if (placePic[idx]?.picture) {
-          const splited = placePic[idx].picture.split("/");
-          const publicId = splited[splited.length - 1].split(".")[0];
-          await cloudinary.destroy(publicId);
-        }
-        placePic[idx]?.id
-          ? await PlacePic.update(
-              { picture: result.secure_url },
-              { where: { id: placePic[idx].id } }
-            )
-          : await PlacePic.create({
+      const pic =
+        typeof picture === "string"
+          ? picture
+          : typeof picture === "undefined"
+          ? undefined
+          : picture[idx];
+
+      if (req.files?.picture) {
+        if (
+          objPlacePic[idx]?.picture !== pic &&
+          objPlacePic[idx]?.picture !== undefined
+        ) {
+          if (req.files.picture[i]) {
+            const result = await cloudinary.upload(req.files.picture[i].path);
+            if (objPlacePic[idx]?.picture) {
+              const splited = objPlacePic[idx].picture.split("/");
+              const publicId = splited[splited.length - 1].split(".")[0];
+              await cloudinary.destroy(publicId);
+
+              if (objPlacePic[idx]?.id) {
+                await PlacePic.update(
+                  {
+                    picture: result.secure_url,
+                    place_id: placeId,
+                  },
+                  { where: { id: objPlacePic[idx].id } }
+                );
+              } else {
+                await PlacePic.create({
+                  picture: result.secure_url,
+                  place_id: placeId,
+                  user_id: req.member.id,
+                });
+              }
+              i += 1;
+            }
+          }
+        } else {
+          if (!objPlacePic[idx]?.id) {
+            const result = await cloudinary.upload(req.files.picture[i].path);
+            await PlacePic.create({
               picture: result.secure_url,
               place_id: placeId,
               user_id: req.member.id,
             });
-      } else {
-        if (placePic[idx]?.picture) {
-          const splited = placePic[idx].picture.split("/");
+
+            i += 1;
+          }
+        }
+      } else if (picture) {
+        if (objPlacePic[idx].picture !== pic) {
+          const splited = objPlacePic[idx].picture.split("/");
           const publicId = splited[splited.length - 1].split(".")[0];
           await cloudinary.destroy(publicId);
+
+          if (pic === undefined || pic === picture) {
+            await PlacePic.destroy({ where: { id: objPlacePic[idx].id } });
+          } else {
+            await PlacePic.update(
+              {
+                picture: pic,
+              },
+              { where: { id: objPlacePic[idx].id } }
+            );
+          }
         }
-        await PlacePic.destroy({ where: { id: placePic[idx].id } });
       }
     }
 
@@ -288,8 +351,10 @@ exports.updatePlace = async (req, res, next) => {
   } catch (err) {
     next(err);
   } finally {
-    for (let idx = 0; idx < req.files.picture.length; idx++) {
-      fs.unlinkSync(req.files.picture[idx].path);
+    if (req.files?.picture) {
+      for (let idx = 0; idx < req.files.picture.length; idx++) {
+        fs.unlinkSync(req.files.picture[idx].path);
+      }
     }
   }
 };
