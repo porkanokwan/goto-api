@@ -44,8 +44,8 @@ app.use("/", homeRoute);
 app.use("/select", selectRoute);
 app.use("/auth", authRoute);
 app.use("/profile", authenticateMiddleware, profileRoute);
-app.use("/place", authenticateMiddleware, placeRoute);
-app.use("/blog", authenticateMiddleware, blogRoute);
+app.use("/place", placeRoute);
+app.use("/blog", blogRoute);
 app.use("/review", authenticateMiddleware, reviewRoute);
 app.use("/menu", authenticateMiddleware, menuRoute);
 
