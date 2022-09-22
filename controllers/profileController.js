@@ -64,9 +64,13 @@ exports.updateProfile = async (req, res, next) => {
     if (!(email || phoneNumber)) {
       createError("email or phoneNumber is require", 400);
     }
-    const isEmail = email !== "" ? validator.isEmail(email) : "email";
+
+    const isEmail =
+      email !== "" && email !== null ? validator.isEmail(email) : "email";
     const isMobilePhone =
-      phoneNumber !== "" ? validator.isMobilePhone(phoneNumber) : "phoneNumber";
+      phoneNumber !== null && phoneNumber !== ""
+        ? validator.isMobilePhone(phoneNumber)
+        : "phoneNumber";
     if (!(isEmail && isMobilePhone)) {
       createError("email or phoneNumber invalid format", 400);
     }
