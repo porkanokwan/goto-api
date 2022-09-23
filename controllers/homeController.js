@@ -71,10 +71,6 @@ exports.searchByCategoryAndProvince = async (req, res, next) => {
       ],
     });
 
-    if (allplace.length === 0) {
-      createError("Don't have any place in this province and category", 400);
-    }
-
     res.status(200).json({ allplace });
   } catch (err) {
     next(err);
