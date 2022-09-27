@@ -221,7 +221,7 @@ exports.updateBlog = async (req, res, next) => {
         typeof picture === "string"
           ? picture
           : typeof picture === "undefined"
-          ? null
+          ? undefined
           : picture[idx];
 
       if (req.files?.picture) {
