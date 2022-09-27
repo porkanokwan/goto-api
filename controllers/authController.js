@@ -128,6 +128,11 @@ exports.resetPassword = async (req, res, next) => {
   try {
     const { newPassword, confirmPassword } = req.body;
     const { token } = req.query;
+    const payload = jwt.verify(token, process.env.JWT_SECRETKEY);
+    const user = await User.findOne({ where: { id: payload.id } });
+    if (!user) {
+      createError("This account is not found on server", 400);
+    }
     if (!newPassword) {
       createError("password is required", 400);
     }
@@ -157,10 +162,8 @@ exports.resetPassword = async (req, res, next) => {
       );
     }
 
-    const payload = jwt.verify(token, process.env.JWT_SECRETKEY);
-
     const hashed = await bcrypt.hash(newPassword, 10);
-    await User.update({ password: hashed }, { where: { id: payload.id } });
+    await User.update({ password: hashed }, { where: { id: user.id } });
     res.status(201).json({ token });
   } catch (err) {
     next(err);
