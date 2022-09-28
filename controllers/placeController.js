@@ -256,21 +256,13 @@ exports.updatePlace = async (req, res, next) => {
               const publicId = splited[splited.length - 1].split(".")[0];
               await cloudinary.destroy(publicId);
 
-              if (objPlacePic[idx]?.id) {
-                await PlacePic.update(
-                  {
-                    picture: result.secure_url,
-                    place_id: placeId,
-                  },
-                  { where: { id: objPlacePic[idx].id } }
-                );
-              } else {
-                await PlacePic.create({
+              await PlacePic.update(
+                {
                   picture: result.secure_url,
                   place_id: placeId,
-                  user_id: req.member.id,
-                });
-              }
+                },
+                { where: { id: objPlacePic[idx].id } }
+              );
               i += 1;
             }
           }

@@ -120,41 +120,34 @@ exports.updateReview = async (req, res, next) => {
           : typeof review_pic === "undefined"
           ? undefined
           : review_pic[idx];
-      console.log("pic", pic);
-      console.log("fies", req.files.review_pic);
+
       if (req.files?.review_pic) {
         if (
-          reviewPic[idx]?.reviewPic !== pic &&
-          reviewPic[idx]?.reviewPic !== undefined
+          objReviewPic[idx]?.reviewPic !== pic &&
+          objReviewPic[idx]?.reviewPic !== undefined
         ) {
           if (req.files.review_pic[i]) {
             const result = await cloudinary.upload(
               req.files.review_pic[i].path
             );
             if (objReviewPic[idx]?.reviewPic) {
-              const splited = reviewPic[idx].reviewPic.split("/");
+              const splited = objReviewPic[idx].reviewPic.split("/");
               const publicId = splited[splited.length - 1].split(".")[0];
               await cloudinary.destroy(publicId);
 
-              if (objReviewPic[idx]?.id) {
-                await ReviewPic.update(
-                  {
-                    reviewPic: result.secure_url,
-                    review_id: reviewId,
-                  },
-                  { where: { id: reviewPic[idx].id } }
-                );
-              } else {
-                await ReviewPic.create({
+              await ReviewPic.update(
+                {
                   reviewPic: result.secure_url,
                   review_id: reviewId,
-                });
-              }
+                },
+                { where: { id: objReviewPic[idx].id } }
+              );
+
               i += 1;
             }
           }
         } else {
-          if (!reviewPic[idx]?.id) {
+          if (!objReviewPic[idx]?.id) {
             const result = await cloudinary.upload(
               req.files.review_pic[i].path
             );
