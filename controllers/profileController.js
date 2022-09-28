@@ -11,7 +11,6 @@ const validator = require("validator");
 const cloudinary = require("../utils/cloudinary");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 
 exports.getProfile = async (req, res, next) => {
   try {
@@ -66,9 +65,9 @@ exports.updateProfile = async (req, res, next) => {
     }
 
     const isEmail =
-      email !== "" && email !== null ? validator.isEmail(email) : "email";
+      email !== "" && email !== "null" ? validator.isEmail(email) : "email";
     const isMobilePhone =
-      phoneNumber !== null && phoneNumber !== ""
+      phoneNumber !== "null" && phoneNumber !== ""
         ? validator.isMobilePhone(phoneNumber)
         : "phoneNumber";
     if (!(isEmail && isMobilePhone)) {

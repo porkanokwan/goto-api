@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       profilePic: DataTypes.STRING,
-      aboutMe: DataTypes.STRING,
+      aboutMe: DataTypes.STRING(1000),
     },
     {
       underscored: true,

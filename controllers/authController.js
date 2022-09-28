@@ -103,6 +103,14 @@ exports.forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ where: { email } });
+    const isEmail = validator.isEmail(email);
+    const isEmpty = validator.isEmpty(email);
+    if (isEmpty) {
+      createError("email is require", 400);
+    }
+    if (!isEmail) {
+      createError("email is invalid format", 400);
+    }
     if (!user) {
       createError("Invalid credential", 400);
     }
