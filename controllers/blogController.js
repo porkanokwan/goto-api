@@ -98,6 +98,9 @@ exports.createBlog = async (req, res, next) => {
     if (!categoryId) {
       createError("category is require", 400);
     }
+    if (place.length < 1) {
+      createError("places in this blog is require", 400);
+    }
     if (!req.files.cover_pic || !req.files.picture) {
       createError("cover picture and picture is require", 400);
     }
