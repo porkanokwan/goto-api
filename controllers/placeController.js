@@ -34,7 +34,12 @@ exports.createPlace = async (req, res, next) => {
     } = req.body;
 
     const hasPlace = await Place.findOne({
-      where: { name, province_id: provinceId, category_id: categoryId },
+      where: {
+        name,
+        province_id: provinceId,
+        category_id: categoryId,
+        address,
+      },
     });
     if (hasPlace) {
       createError("This place already has in this server", 400);
@@ -50,6 +55,15 @@ exports.createPlace = async (req, res, next) => {
     }
     if (!address) {
       createError("address is require", 400);
+    }
+    if (!wifi) {
+      createError("wifi is require", 400);
+    }
+    if (!parking) {
+      createError("parking is require", 400);
+    }
+    if (!reserve) {
+      createError("reserve is require", 400);
     }
     const place = await Place.create({
       name,
