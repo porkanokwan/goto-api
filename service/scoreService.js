@@ -1,7 +1,7 @@
 const { Review, sequelize } = require("../models");
 const { Op } = require("sequelize");
 
-exports.calculateScore = async (place) => {
+exports.calculateScore = async (place, next) => {
   const t = await sequelize.transaction();
   try {
     const amountFive = await Review.count({

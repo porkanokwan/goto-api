@@ -37,7 +37,7 @@ exports.createReview = async (req, res, next) => {
         });
       }
     }
-    calculateScore(place);
+    calculateScore(place, next);
 
     const reviewWithPic = await Review.findOne({
       where: { id: newReview.id },
@@ -180,7 +180,7 @@ exports.updateReview = async (req, res, next) => {
         }
       }
     }
-    calculateScore(place);
+    calculateScore(place, next);
 
     const reviewWithPic = await Review.findOne({
       where: { id: reviewId },
@@ -238,7 +238,7 @@ exports.deleteReview = async (req, res, next) => {
 
     await Review.destroy({ where: { id: existReview.id } });
 
-    calculateScore(place);
+    calculateScore(place, next);
 
     res.status(204).json();
   } catch (err) {
