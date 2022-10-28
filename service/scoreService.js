@@ -20,14 +20,15 @@ exports.calculateScore = async (place, next) => {
       where: { place_id: place.id, star: { [Op.eq]: 1 } },
     });
     const amount = await Review.count({ where: { place_id: place.id } });
-    const reviewStar =
-      (5 * amountFive +
-        4 * amountFour +
-        3 * amountThree +
-        2 * amountTwo +
-        1 * amountOne) /
-        amount -
-      place.star;
+    const reviewStar = amount
+      ? (5 * amountFive +
+          4 * amountFour +
+          3 * amountThree +
+          2 * amountTwo +
+          1 * amountOne) /
+          amount -
+        place.star
+      : -place.star;
 
     await place.increment(
       { star: reviewStar },
