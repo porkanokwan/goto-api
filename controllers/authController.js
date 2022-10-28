@@ -16,7 +16,13 @@ const createToken = (payload) => {
 exports.register = async (req, res, next) => {
   try {
     const { name, emailorPhone, password, confirmPassword } = req.body;
+    const userExist = await User.findOne({
+      where: { [Op.or]: [{ email: emailorPhone, phoneNumber: emailorPhone }] },
+    });
 
+    if (!userExist && userExist !== null) {
+      createError("Account with that email or phone number already exist", 400);
+    }
     if (!name) {
       createError("name is required", 400);
     }
